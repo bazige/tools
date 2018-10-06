@@ -152,4 +152,88 @@ for root, subdir, files in os.walk(new_path):
                     new_x_1 = center_x - pad/2
                     new_y_1 = center_y - pad/2
                     
+                    new_x_2 = new_x_1 + pad
+                    new_y_2 = new_y_1 + pad
+                    if pad < 64:
+                        continue
+                    if new_x_1 < 0:#exceeding left boundary, shift to right
+                        new_x_2 = new_x_2 - new_x_1
+                        new_x_1 = 0
+                    if new_y_1 < 0:#exceeding right boundary, shift to left
+                        new_y_2 = new_y_2 - new_y_1
+                        new_y_1 = 0
+                    if new_x_2 >= re_width:#exceeding to right boundary, shift to left
+                        new_x_1 = new_x_1 - (new_x_2 - re_width + 1)
+                        new_x_2 = re_width - 1
+                    if new_y_2 >= re_height:#exceeding to right boundary, shift to left
+                        new_y_1 = new_y_1 - (new_y_2 - re_height + 1)
+                        new_y_2 = re_height - 1
+                    if new_x_1 < 0:
+                        new_x_2 = new_x_2 - new_x_1
+                        new_x_1 = 0
+                    if new_y_1 < 0:
+                        new_y_2 = new_y_2 - new_y_1
+                        new_y_1 = 0
+                    print new_x_1, new_x_2, new_y_1, new_y_2
+                    #cut ROI zone
+                    sub_img = img[new_y_1:new_y_2, new_x_1:new_x_2]
+                    sub_img = cv2.resize(sub_img, (net_w, net_h))
                     
+                    #cv2.imshow("a", sub_img)
+                    #cv2.waitKey()
+                    #cv2.rectangle(img_resize, (new_x_1, new_y_1), (new_x_2, new_y_2), (255, 0, 0), 1)
+                    new_jpg_name = subdir + '/' + str(count) + '.jpg'
+                    cv2.imwrite(new_jpg_name, sub_img)
+                    new_txt_name = subdir + '/' + str(count) + '.txt'
+                                
+                    #---------------------------------------------------------------------------------#
+                    # 4. reconvert label information to new position refer to new image
+                    #---------------------------------------------------------------------------------#
+                    with open(new_txt_name, 'w') as f:
+                        o_x_1_1 = x_1
+                        o_y_1_1 = x_2
+                        o_x_2_1 = y_1        
+                        o_y_2_2 = y_2 
+                        if x_1 < new_x_1:
+                            o_x_1_1 = x_1
+                        if y_1 < new_y_1:
+                            o_y_1_1 = y_1
+                        if x_2 < new_x_2:
+                            o_x_2_1 = x_2
+                        if y_2 < new_y_2:
+                            o_y_2_1 = y_2
+                        o_w = o_x_2_1 - o_x_1_1
+                        o_h = o_y_2_1 - o_y_1_1   
+                                
+                        # caculate padding position of label refer to new ROI
+                        obj_x = (o_x_1_1 + o_w/2 - new_x_1) * 1.0 / (new_x_2 - new_x_1)
+                        obj_y = (o_y_1_1 + o_h/2 - new_y_1) * 1.0 / (new_y_2 - new_y_1)       
+                        obj_w = o_w * 1.0 / (new_x_2 - new_x_1)
+                        obj_h = o_h * 1.0 / (new_y_2 - new_y_1)
+                        obj_cls = class_name 
+                        f.write(str(obj_cls) + ' ' + str(obj_x) + ' ' + str(obj_y) + ' ' + str(obj_w) + ' ' + str(obj_h) + '\n')
+                                
+                        #---------------------------------------------------------------------------------#
+                        # 5. if overlap to other box, then caculating IOU, and disguish the box with low
+                        #    value of IOU       
+                        #---------------------------------------------------------------------------------#
+                        # pdb.set_trace()
+                        for other_obj in obj_list:
+                            o_c = other_obj[0]
+                            o_x_1 = other_obj[1]
+                            o_y_1 = other_obj[2]
+                            o_x_2 = other_obj[3]
+                            o_y_2 = other_obj[4]
+                                
+                            if o_x_1 == x_1 and o_y_1 = y_1 and o_x_2 == x_2 and o_y_2 = y_2:
+                                continue
+                            cx = (o_x_1 + o_x_2) / 2
+                            cy = (o_y_1 + o_y_2) / 2
+                            print o_x_1, o_y_1, o_x_2, o_y_2
+                            t_iou = iou([new_x_1, new_y_1, new_x_2, new_y_2], [o_x_1, o_y_1, o_x_2, o_y_2])
+                            if t_iou > 0:
+                                
+                                
+                                
+                                
+                                
