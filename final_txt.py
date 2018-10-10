@@ -49,7 +49,7 @@ for root, subdir, files in os.walk(new_path):
                 print root
                 print doc
                 #------------------------------------------------------------------------------#
-                # 1. find picture according to matched txt, and make a direction
+                # 1. find picture according to matched txt, and make a folder
                 #------------------------------------------------------------------------------#
                 #pdb.set_trace()
                 file_path = os.path.join(root, doc)
@@ -65,8 +65,8 @@ for root, subdir, files in os.walk(new_path):
                     os.makedirs(new_dir)
                     
                 #-------------------------------------------------------------------------------#
-                # 2. read typeId and label information in txt, and convert it up-left and right
-                #    -down point, and shuff them
+                # 2. read typeId and label of txt, and reshape the format to up-left and right
+                #    -down point and then shuff them
                 #-------------------------------------------------------------------------------#
                 obj_list = []
                 for line in f:
@@ -90,7 +90,8 @@ for root, subdir, files in os.walk(new_path):
                 random.shuffle(obj_list)
                 
                 #---------------------------------------------------------------------------------#
-                # 3. center x,y offset about 5~20%, and padding w and h about 80%~160%
+                # 3. The center offset of x,y is about 5~20%, and padding value refer to w and h 
+                #    is about 80%~160%
                 #---------------------------------------------------------------------------------#
                 for i in xrange(obj_count):
                     #subdir = os.path.join(new_dir, str(count))
@@ -104,7 +105,7 @@ for root, subdir, files in os.walk(new_path):
                     y_2 = obj_list[i][4]
                     w = x_2 - x_1
                     h = y_2 - y_1
-                    # release typeID = 5
+                    # ignoring the object that typeID is 5
                     if class_name >= 5:
                         continue 
                     if w < 10 or h < 10:
@@ -132,7 +133,7 @@ for root, subdir, files in os.walk(new_path):
                     
                     orw = int(w * factor)*2 + w
                     orh = int(h * factor)*2 + h
-                    #save 
+                    # boundary protection 
                     if re_width > re_height:
                         if orw > re_height - 1:
                             orw = re_height -1
@@ -148,7 +149,8 @@ for root, subdir, files in os.walk(new_path):
                     else:
                         pad = orh
                         
-                    # caculate label up-left and right-down point
+                    # caculating label's up-left and right-down point after shift
+                    # and get padding image
                     new_x_1 = center_x - pad/2
                     new_y_1 = center_y - pad/2
                     
@@ -156,16 +158,16 @@ for root, subdir, files in os.walk(new_path):
                     new_y_2 = new_y_1 + pad
                     if pad < 64:
                         continue
-                    if new_x_1 < 0:#exceeding left boundary, shift to right
+                    if new_x_1 < 0:# moving left if beyond right boundary
                         new_x_2 = new_x_2 - new_x_1
                         new_x_1 = 0
-                    if new_y_1 < 0:#exceeding right boundary, shift to left
+                    if new_y_1 < 0:# moving down if beyond top
                         new_y_2 = new_y_2 - new_y_1
                         new_y_1 = 0
-                    if new_x_2 >= re_width:#exceeding to right boundary, shift to left
+                    if new_x_2 >= re_width:# moving right if beyond left boundary
                         new_x_1 = new_x_1 - (new_x_2 - re_width + 1)
                         new_x_2 = re_width - 1
-                    if new_y_2 >= re_height:#exceeding to right boundary, shift to left
+                    if new_y_2 >= re_height:# moving up if beyond bottom
                         new_y_1 = new_y_1 - (new_y_2 - re_height + 1)
                         new_y_2 = re_height - 1
                     if new_x_1 < 0:
@@ -175,7 +177,7 @@ for root, subdir, files in os.walk(new_path):
                         new_y_2 = new_y_2 - new_y_1
                         new_y_1 = 0
                     print new_x_1, new_x_2, new_y_1, new_y_2
-                    #cut ROI zone
+                    # crop ROI zone
                     sub_img = img[new_y_1:new_y_2, new_x_1:new_x_2]
                     sub_img = cv2.resize(sub_img, (net_w, net_h))
                     
@@ -187,7 +189,7 @@ for root, subdir, files in os.walk(new_path):
                     new_txt_name = subdir + '/' + str(count) + '.txt'
                                 
                     #---------------------------------------------------------------------------------#
-                    # 4. reconvert label information to new position refer to new image
+                    # 4. reconvert label information to new position that refer to new image
                     #---------------------------------------------------------------------------------#
                     with open(new_txt_name, 'w') as f:
                         o_x_1_1 = x_1
@@ -205,7 +207,7 @@ for root, subdir, files in os.walk(new_path):
                         o_w = o_x_2_1 - o_x_1_1
                         o_h = o_y_2_1 - o_y_1_1   
                                 
-                        # caculate padding position of label refer to new ROI
+                        # get padding label position that refer to new ROI
                         obj_x = (o_x_1_1 + o_w/2 - new_x_1) * 1.0 / (new_x_2 - new_x_1)
                         obj_y = (o_y_1_1 + o_h/2 - new_y_1) * 1.0 / (new_y_2 - new_y_1)       
                         obj_w = o_w * 1.0 / (new_x_2 - new_x_1)
@@ -214,7 +216,7 @@ for root, subdir, files in os.walk(new_path):
                         f.write(str(obj_cls) + ' ' + str(obj_x) + ' ' + str(obj_y) + ' ' + str(obj_w) + ' ' + str(obj_h) + '\n')
                                 
                         #---------------------------------------------------------------------------------#
-                        # 5. if overlap to other box, then caculating IOU, and disguish the box with low
+                        # 5. if this box overlaps with other boxes, caculating IOU, and then throw away the box with low
                         #    value of IOU       
                         #---------------------------------------------------------------------------------#
                         # pdb.set_trace()
@@ -246,7 +248,7 @@ for root, subdir, files in os.walk(new_path):
                                     o_y_2_1 = new_y_2
                                 o_w = o_x_2_1 - o_x_1_1
                                 o_h = o_y_2_1 - o_y_1_1
-                                # if boundary is overlap or be cropped, caculating box again
+                                # if one box overlaps with another or the box is cropped, the recaculating box
                                 obj_x = (o_x_1_1 + o_w/2 - new_x_1) * 1.0 / (new_x_2 - new_x_1)
                                 obj_y = (o_y_1_1 + o_h/2 - new_y_1) * 1.0 / (new_y_2 - new_y_1)
                                 obj_w = o_w * 1.0 /(new_x_2 - new_x_1)
@@ -258,7 +260,7 @@ for root, subdir, files in os.walk(new_path):
                                     continue
                                 if t_iou > 0.003 and cx >= new_x_1 and cx <= new_x_2 and cy >= new_y_1 and cy <= new_y_2:
                                     f.write(str(obj_cls) + ' ' + str(obj_x) + ' ' + str(obj_y) + ' ' + str(obj_w) + ' ' + str(obj_h) + '\n')
-                                # the objects that its boundary is cropped and its class is set 4
+                                # if the object's is cropped, its type will be set 4
                                 else: 
                                     f.write('4' + ' ' + str(obj_x) + ' ' + str(obj_y) + ' ' + str(obj_w) + ' ' + str(obj_h) + '\n')
                     count += 1
