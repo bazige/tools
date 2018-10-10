@@ -232,6 +232,38 @@ for root, subdir, files in os.walk(new_path):
                             print o_x_1, o_y_1, o_x_2, o_y_2
                             t_iou = iou([new_x_1, new_y_1, new_x_2, new_y_2], [o_x_1, o_y_1, o_x_2, o_y_2])
                             if t_iou > 0:
+                                o_x_1_1 = o_x_1
+                                o_y_1_1 = o_y_1
+                                o_x_2_1 = o_x_2
+                                o_y_2_1 = o_y_2
+                                if o_x_1 < new_x_1:
+                                    o_x_1_1 = new_x_1
+                                if o_y_1 < new_y_1:
+                                    o_y_1 = new_y_1:
+                                if o_x_2 > new_x_2:
+                                    o_x_2_1 = new_x_2
+                                if o_y_2 > new_y_2:
+                                    o_y_2_1 = new_y_2
+                                o_w = o_x_2_1 - o_x_1_1
+                                o_h = o_y_2_1 - o_y_1_1
+                                # if boundary is overlap or be cropped, caculating box again
+                                obj_x = (o_x_1_1 + o_w/2 - new_x_1) * 1.0 / (new_x_2 - new_x_1)
+                                obj_y = (o_y_1_1 + o_h/2 - new_y_1) * 1.0 / (new_y_2 - new_y_1)
+                                obj_w = o_w * 1.0 /(new_x_2 - new_x_1)
+                                obj_h = o_h * 1.0 /(new_y_2 - new_y_1)
+                                obj_cls = o_c
+                                scale_w = o_w * 1.0 /(new_x_2 - new_x_1)
+                                scale_h = o_h * 1.0 /(new_y_2 - new_y_1)
+                                if scale_h*scale_w < 0.0025 or scale_w < 0.005 or scale_h < 0.005:
+                                    continue
+                                if t_iou > 0.003 and cx >= new_x_1 and cx <= new_x_2 and cy >= new_y_1 and cy >= new_y_2:
+                                    f.write(str(obj_cls) + ' ' + str(obj_x) + ' ' + str(obj_y) + ' ' + str(obj_w) + ' ' + str(obj_h) + '\n')
+                                # the objects that its boundary is cropped and its class is set 4
+                                else: 
+                                    f.write('4' + ' ' + str(obj_x) + ' ' + str(obj_y) + ' ' + str(obj_w) + ' ' + str(obj_h) + '\n')
+                    count += 1
+        #break                        
+                                                     
                                 
                                 
                                 
