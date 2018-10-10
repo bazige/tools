@@ -14,14 +14,14 @@ parser.add_argument('--path', type=str, required=True)
 args = parser.parse_args()
 new_path = args.path
 
-cls = {'0: 0,
-        '1': 1,
-        '2': 2,
-        '3': 3,
-        '4': 4,
-        '5': 1,
-        '6': 1,
-        '7': 3,
+cls = {'0': 0,
+       '1': 1,
+       '2': 2,
+       '3': 3,
+       '4': 4,
+       '5': 1,
+       '6': 1,
+       '7': 3,
         }
         
 traffic_list = ['ImageName', 'TaskId', 'Filesum']
@@ -30,10 +30,10 @@ def iou(b1, b2):
     w = min(int(b1[2]), int(b2[2])) - max(int(b1[0]), int(b2[0]))
     h = min(int(b1[3]), int(b2[3])) - max(int(b1[1]), int(b2[1]))
     
-    if w<= 0 or h <= 0;
+    if w <= 0 or h <= 0:
         return 0
-    sa = (int(b1[2]) - int(b1[0])) * (int(b1[3])) - int(b1[1]))
-    sb = (int(b1[2]) - int(b1[0])) * (int(b1[3])) - int(b1[1]))
+    sa = (int(b1[2]) - int(b1[0])) * (int(b1[3]) - int(b1[1]))
+    sb = (int(b2[2]) - int(b2[0])) * (int(b2[3]) - int(b2[1]))
     
     cross = w * h
     return cross * 1.0/(sa + sb - cross)
@@ -45,7 +45,7 @@ for root, subdir, files in os.walk(new_path):
     if files != []:
         count = 0
         for doc in files:
-            if doc.endswith('.txt')
+            if doc.endswith('.txt'):
                 print root
                 print doc
                 #------------------------------------------------------------------------------#
@@ -59,7 +59,7 @@ for root, subdir, files in os.walk(new_path):
                     continue
                 re_width = img.shape[1]
                 re_height = img.shape[0]
-                img_resize = cv2.imread(img, (re_width, re_height))
+                img_resize = cv2.resize(img, (re_width, re_height))
                 new_dir = '/home/public/133public/face_person/RegionData/struct_data_roi/pad_256' + root[24:]
                 if not os.path.isdir(new_dir):
                     os.makedirs(new_dir)
@@ -72,18 +72,18 @@ for root, subdir, files in os.walk(new_path):
                 for line in f:
                     content = line.strip('\n').split(' ')
                     cls_name = cls[content[0]]
-                    x_1 = int((float(content[1]) - float(content[3] / 2) * re_width)
-                    y_1 = int((float(content[2]) - float(content[4] / 2) * re_height)
-                    x_2 = x_1 + int((float(content[1]) * re_width)
-                    y_2 = y_1 + int((float(content[1]) * re_width)
+                    x_1 = int((float(content[1]) - float(content[3]) / 2) * re_width)
+                    y_1 = int((float(content[2]) - float(content[4]) / 2) * re_height)
+                    x_2 = x_1 + int((float(content[3]) * re_width))
+                    y_2 = y_1 + int((float(content[4]) * re_height))
                     if x_1 < 0:
                         x_1 = 0
                     if y_1 < 0:
-                        x_1 = 0
+                        y_1 = 0
                     if x_2 >= re_width:
-                        x_1 = re_width - 1
-                    if y_2 < re_height:
-                        x_1 = re_height - 1
+                        x_2 = re_width - 1
+                    if y_2 >= re_height:
+                        y_2 = re_height - 1
                     obj_list.append([cls_name, x_1, y_1, x_2, y_2])
                     
                 obj_count = len(obj_list)
@@ -113,8 +113,8 @@ for root, subdir, files in os.walk(new_path):
                     center_x = (x_1 + x_2)/2
                     center_y = (y_1 + y_2)/2
                     
-                    roffx = int((float(random.randint(5, 20)) / 100 * w)
-                    roffy = int((float(random.randint(5, 20)) / 100 * h)
+                    roffx = int((float(random.randint(5, 20)) / 100) * w)
+                    roffy = int((float(random.randint(5, 20)) / 100) * h)
                     
                     tt = random.randint(0, 1)
                     if tt == 0:
@@ -191,17 +191,17 @@ for root, subdir, files in os.walk(new_path):
                     #---------------------------------------------------------------------------------#
                     with open(new_txt_name, 'w') as f:
                         o_x_1_1 = x_1
-                        o_y_1_1 = x_2
-                        o_x_2_1 = y_1        
-                        o_y_2_2 = y_2 
+                        o_y_1_1 = y_1
+                        o_x_2_1 = x_2        
+                        o_y_2_1 = y_2 
                         if x_1 < new_x_1:
-                            o_x_1_1 = x_1
+                            o_x_1_1 = new_x_1
                         if y_1 < new_y_1:
-                            o_y_1_1 = y_1
-                        if x_2 < new_x_2:
-                            o_x_2_1 = x_2
-                        if y_2 < new_y_2:
-                            o_y_2_1 = y_2
+                            o_y_1_1 = new_y_1
+                        if x_2 > new_x_2:
+                            o_x_2_1 = new_x_2
+                        if y_2 > new_y_2:
+                            o_y_2_1 = new_y_2
                         o_w = o_x_2_1 - o_x_1_1
                         o_h = o_y_2_1 - o_y_1_1   
                                 
@@ -225,11 +225,11 @@ for root, subdir, files in os.walk(new_path):
                             o_x_2 = other_obj[3]
                             o_y_2 = other_obj[4]
                                 
-                            if o_x_1 == x_1 and o_y_1 = y_1 and o_x_2 == x_2 and o_y_2 = y_2:
+                            if o_x_1 == x_1 and o_y_1 == y_1 and o_x_2 == x_2 and o_y_2 == y_2:
                                 continue
                             cx = (o_x_1 + o_x_2) / 2
                             cy = (o_y_1 + o_y_2) / 2
-                            print o_x_1, o_y_1, o_x_2, o_y_2
+                            # print o_x_1, o_y_1, o_x_2, o_y_2
                             t_iou = iou([new_x_1, new_y_1, new_x_2, new_y_2], [o_x_1, o_y_1, o_x_2, o_y_2])
                             if t_iou > 0:
                                 o_x_1_1 = o_x_1
@@ -239,7 +239,7 @@ for root, subdir, files in os.walk(new_path):
                                 if o_x_1 < new_x_1:
                                     o_x_1_1 = new_x_1
                                 if o_y_1 < new_y_1:
-                                    o_y_1 = new_y_1:
+                                    o_y_1_1 = new_y_1:
                                 if o_x_2 > new_x_2:
                                     o_x_2_1 = new_x_2
                                 if o_y_2 > new_y_2:
@@ -254,9 +254,9 @@ for root, subdir, files in os.walk(new_path):
                                 obj_cls = o_c
                                 scale_w = o_w * 1.0 /(new_x_2 - new_x_1)
                                 scale_h = o_h * 1.0 /(new_y_2 - new_y_1)
-                                if scale_h*scale_w < 0.0025 or scale_w < 0.005 or scale_h < 0.005:
+                                if scale_h*scale_w < 0.0025 or scale_w < 0.05 or scale_h < 0.05:
                                     continue
-                                if t_iou > 0.003 and cx >= new_x_1 and cx <= new_x_2 and cy >= new_y_1 and cy >= new_y_2:
+                                if t_iou > 0.003 and cx >= new_x_1 and cx <= new_x_2 and cy >= new_y_1 and cy <= new_y_2:
                                     f.write(str(obj_cls) + ' ' + str(obj_x) + ' ' + str(obj_y) + ' ' + str(obj_w) + ' ' + str(obj_h) + '\n')
                                 # the objects that its boundary is cropped and its class is set 4
                                 else: 
