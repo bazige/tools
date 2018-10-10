@@ -74,8 +74,8 @@ for root, subdir, files in os.walk(new_path):
                     cls_name = cls[content[0]]
                     x_1 = int((float(content[1]) - float(content[3]) / 2) * re_width)
                     y_1 = int((float(content[2]) - float(content[4]) / 2) * re_height)
-                    x_2 = x_1 + int((float(content[3]) * re_width))
-                    y_2 = y_1 + int((float(content[4]) * re_height))
+                    x_2 = x_1 + int(float(content[3]) * re_width))
+                    y_2 = y_1 + int(float(content[4]) * re_height))
                     if x_1 < 0:
                         x_1 = 0
                     if y_1 < 0:
@@ -239,7 +239,7 @@ for root, subdir, files in os.walk(new_path):
                                 if o_x_1 < new_x_1:
                                     o_x_1_1 = new_x_1
                                 if o_y_1 < new_y_1:
-                                    o_y_1_1 = new_y_1:
+                                    o_y_1_1 = new_y_1
                                 if o_x_2 > new_x_2:
                                     o_x_2_1 = new_x_2
                                 if o_y_2 > new_y_2:
