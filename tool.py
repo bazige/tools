@@ -152,4 +152,66 @@ if __name__ == '__main__':
     sub_parser = parent_parser.add_subparsers(title='subcommonds')
                                             
     parser_create_list = sub_parser.add_parser('create')
-    parser_create_list.add_argument('img_path', helo
+    parser_create_list.add_argument('img_path', help='训练图片存放路径（标签与图片同文件夹）', type=str)
+    parser_create_list.add_argument('dest_path',help='list生成路径（包括文件名）', type=str)
+    parser_create_list.set_defaults(func=create_list)
+    
+    parser_show = sub_parser.add_parser('show')
+    parser_show.add_argument('img_path', help='显示图片存放路径（标签与图片同文件夹）', type=str)
+    parser_show.set_defaults(func=show_image_label)
+  
+    parser_json = sub_parser.add_parser('json')
+    parser_json.add_argument('img_path', help='显示json存放路径', type=str)
+    parser_json.set_defaults(func=parse_json)
+                                            
+    args = parent_parser.parse_args()
+    if args.func.__name__ == 'create_list':
+       args.func(args.img_path, args.dest_path)
+    elif args.func.__name__ == 'show_image_label':
+       args.func(args.img_path)
+    elif args.func.__name__ == 'parse_json':
+       args.func(args.img_path)  
+                                            
+#生成测试txt
+if 0:
+   data_path = '/home/public/test_2/'
+   with open('test_aa.txt', 'w') as f:
+       for i in os.listdir(data_path):
+           f.write(data_path + i + '\n')
+                                            
+#删除样本中目标数过多的样本及对应label
+if 1:
+    data_path = '/home/public/face_person/region_data'
+    for root, subdir, files in os.walk(data_path):
+       if file != []:
+           for doc in files:
+               if doc[-3:] == 'txt':
+                   count = 0
+                   ff = open(root, + '/' + doc, 'r')
+                   for line in ff:
+                       content = line.strip('\n').split(' ')
+                       if content[0] int ['0', '1', '2']:
+                            count += 1
+                       if count > 5:
+                           print doc
+                           os.remove(root + '/' + doc)
+                           os.remove(root + '/' + doc[:-3] + 'jpg')
+                                            
+#删除生成样本中目标过小的情况
+if 0:
+    data_path = '/home/public/new_re/obj/'
+    count = 0
+    for root, subdir, files in os.walk(data_path):
+       if file != []:
+           for doc in files:
+               if doc[-3:] == 'jpg':
+                   img_path = os.path.join(root, doc)
+                   img = cv2.imread(img_path)
+                   width = img.shape[1]
+                   height = img.shape[0]
+                   if height * width < 30*30:
+                       count += 1
+                       print img_path
+                       os.remove(root + '/' + doc)
+                       os.remove(root + '/' + doc[:-3] + 'txt')
+    print count
