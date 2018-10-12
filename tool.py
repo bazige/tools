@@ -61,12 +61,12 @@ def show_image_label(img_path):
                     print img.shape
                     with open(txt_path, 'r') as f:
                         for line in f:
-                            content = line.stripe('\n').split(' ')
+                            content = line.strip('\n').split(' ')
                             cls_name = int(content[0])
-                            x_1 = int((float(content[1] - float(content[3]) / 2) * img.shape[1])
-                            y_1 = int((float(content[2] - float(content[4]) / 2) * img.shape[0])
-                            x_2 = int((float(content[1] + float(content[3]) / 2) * img.shape[1])
-                            y_2 = int((float(content[2] + float(content[4]) / 2) * img.shape[0])
+                            x_1 = int((float(content[1]) - float(content[3]) / 2) * img.shape[1])
+                            y_1 = int((float(content[2]) - float(content[4]) / 2) * img.shape[0])
+                            x_2 = int((float(content[1]) + float(content[3]) / 2) * img.shape[1])
+                            y_2 = int((float(content[2]) + float(content[4]) / 2) * img.shape[0])
                             bgr = [0, 0, 0]
                             if cls_name == 0:
                                 bgr = [0, 0, 255]#行人
@@ -75,7 +75,7 @@ def show_image_label(img_path):
                             if cls_name == 2:
                                 bgr = [0, 255, 0]#非机动车 
                             if cls_name == 3:
-                                bgr = [0, 0, 255]
+                                bgr = [255, 255, 0]
                             if cls_name >= 10 and cls_name < 20:
                                 bgr = [255, 0, 255]
                             if cls_name >= 20:
@@ -85,9 +85,9 @@ def show_image_label(img_path):
                     if cv2.waitKey() == 27:
                         break
                                       
-def parse_json(img_path, mode='darknet'):
+def parse_json(img_path, mode="darknet"):
     for root, subdir, files in os.walk(img_path):
-        if file != []:
+        if files != []:
             for doc in files:
                 if doc.endswith('.json'):
                     # print root
@@ -121,8 +121,8 @@ def parse_json(img_path, mode='darknet'):
                                         y_2 = int(sub[index]['rect'][1][1])
                                         x = (x_1 + x_2) / 2.0 / 8192
                                         y = (y_1 + y_2) / 2.0 / 8192
-                                        w = (x_2 - x_1) / 8192
-                                        h = (y_2 - y_1) / 8192
+                                        w = (x_2 - x_1) / 8192.0
+                                        h = (y_2 - y_1) / 8192.0
                                         g.write(str(cls[key]) + ' ' + str(x) + ' ' + str(y) + ' ' + str(w) + ' ' + str(h) + '\n')
                     elif mode == "oc":
                         save_path = '/home/cc'
@@ -140,15 +140,15 @@ def parse_json(img_path, mode='darknet'):
                                     if 'rect' not in sub[index].keys():
                                         continue
                                     x_1 = int(int(sub[index]['rect'][0][0]) * img.shape[1] / 8192.0)
-                                    y_1 = int(int(sub[index]['rect'][0][0]) * img.shape[1] / 8192.0)
-                                    y_1 = int(int(sub[index]['rect'][0][0]) * img.shape[1] / 8192.0)
-                                    y_1 = int(int(sub[index]['rect'][0][0]) * img.shape[1] / 8192.0)
+                                    y_1 = int(int(sub[index]['rect'][0][1]) * img.shape[0] / 8192.0)
+                                    x_2 = int(int(sub[index]['rect'][1][0]) * img.shape[1] / 8192.0)
+                                    y_2 = int(int(sub[index]['rect'][1][1]) * img.shape[0] / 8192.0)
                                     sub_img = img[y_1:y_2, x_1:x_2]
                                     sub_path = os.path.join(key_path, doc[:-9] + '_' + str(index) + ".jpg")
-                                    cv2.imwrite(subpath, sub_img)
+                                    cv2.imwrite(sub_path, sub_img)
                                       
 if __name__ == '__main__':
-    parent_parser = argparse.ArgumetnParser(description='tool script for daily use")
+    parent_parser = argparse.ArgumentParser(description="tool script for daily use")
     sub_parser = parent_parser.add_subparsers(title='subcommonds')
                                             
     parser_create_list = sub_parser.add_parser('create')
@@ -183,14 +183,14 @@ if 0:
 if 1:
     data_path = '/home/public/face_person/region_data'
     for root, subdir, files in os.walk(data_path):
-       if file != []:
+       if files != []:
            for doc in files:
                if doc[-3:] == 'txt':
                    count = 0
-                   ff = open(root, + '/' + doc, 'r')
+                   ff = open(root + '/' + doc, 'r')
                    for line in ff:
                        content = line.strip('\n').split(' ')
-                       if content[0] int ['0', '1', '2']:
+                       if content[0] in ['0', '1', '2']:
                             count += 1
                        if count > 5:
                            print doc
